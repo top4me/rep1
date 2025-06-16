@@ -1,4 +1,4 @@
-name: Build Briefcase APK
+name: Build Android APK
 
 on:
   push:
@@ -13,20 +13,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Check for pyproject.toml
-        run: |
-          if [ ! -f pyproject.toml ]; then
-            echo "❌ pyproject.toml not found!"
-            exit 1
-          fi
-
-      - name: Set up Python 3.9
+      - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.9'
 
       - name: Install Briefcase
-        run: pip install briefcase
+        run: pip install briefcase toga
 
       - name: Create Android project
         run: briefcase create android
@@ -35,7 +28,7 @@ jobs:
         run: briefcase build android
 
       - name: Package APK
-        run: briefcase package android --format apk
+        run: briefcase package android --packaging-format apk --adhoc-sign
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
