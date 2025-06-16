@@ -17,16 +17,29 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: '3.10'
+          cache: 'pip'  # Кеширование зависимостей
 
-      - name: Install dependencies
+      - name: Install system dependencies
         run: |
-          pip install --upgrade pip
-          pip install briefcase==0.3.23 toga==0.3.0
+          sudo apt-get update
+          sudo apt-get install -y \
+            python3-dev \
+            libffi-dev \
+            libssl-dev
 
-      - name: Create project structure
+      - name: Install project dependencies
+        run: |
+          python -m pip install --upgrade pip wheel setuptools
+          pip install --no-cache-dir briefcase==0.3.23 toga==0.3.0
+
+      - name: Verify installation
+        run: |
+          python -c "import briefcase; print(f'Briefcase version: {briefcase.__version__}')"
+          python -c "import toga; print(f'Toga version: {toga.__version__}')"
+
+      - name: Build Android APK
         run: |
           mkdir -p src/myapp
-          [ -f src/myapp/__init__.py ] || touch src/myapp/__init__.py
           [ -f src/myapp/app.py ] || cat > src/myapp/app.py <<EOF
           import toga
           from toga.style import Pack
@@ -37,14 +50,13 @@ jobs:
           def main():
               return toga.App("MyApp", "org.example.myapp", startup=build)
           EOF
-
-      - name: Build APK
-        run: |
+          
           briefcase create android
           briefcase build android
           briefcase package android --packaging-format apk --adhoc-sign
 
       - name: Upload APK
+        if: success()
         uses: actions/upload-artifact@v4
         with:
           name: app-release
