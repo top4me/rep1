@@ -1,24 +1,24 @@
 name: Build APK with Kivy/Buildozer Docker
 
 on:
-  push:           # Запуск при любом push
-  pull_request:   # Запуск при любом Pull Request
+  push:
+  pull_request:
 
 jobs:
   build:
     runs-on: ubuntu-22.04
-    container: kivy/buildozer  # Используем официальный Docker-контейнер
 
     steps:
     - name: Checkout code
       uses: actions/checkout@v3
 
-    - name: Install git (внутри контейнера часто отсутствует)
-      run: apt update && apt install -y git
-
-    - name: Build APK with Buildozer
+    - name: Set up Docker and run Buildozer inside container
       run: |
-        buildozer android debug
+        docker pull kivy/buildozer
+        docker run --rm -v ${{ github.workspace }}:/home/user/app \
+          -w /home/user/app \
+          kivy/buildozer \
+          buildozer android debug
 
     - name: Upload APK artifact
       uses: actions/upload-artifact@v4
