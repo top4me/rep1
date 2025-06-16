@@ -1,98 +1,37 @@
-name: Build Kivy Android App
+name: Build Android APK
 
-on:
-  push:
-    branches: ['*']
-  pull_request:
-    branches: ['*']
+on: [push, workflow_dispatch]
 
 jobs:
   build:
     runs-on: ubuntu-22.04
-    container: kivy/buildozer
-    timeout-minutes: 30
-
-    permissions:
-      contents: read
-      pull-requests: write
-      actions: write
-
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    # Шаг 1: Подготовка окружения
-    - name: Setup environment
-      run: |
-        # Создаем buildozer.spec если отсутствует
-        if [ ! -f buildozer.spec ]; then
-          buildozer init
-          sed -i '
-            s|# requirements =.*|requirements = python3,kivy==2.3.0,android|;
-            s|# android.api =.*|android.api = 34|;
-            s|# android.ndk =.*|android.ndk = 25b|;
-            s|# android.sdk =.*|android.sdk = 34|;
-            s|# android.release_artifact =.*|android.release_artifact = bin/{title}-{version}-debug.apk|
-          ' buildozer.spec
-        fi
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
 
-        # Дефолтные ассеты
-        mkdir -p bin
-        [ -f icon.png ] || convert -size 512x512 xc:white icon.png
-        [ -f presplash.png ] || convert -size 1280x720 xc:black presplash.png
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install briefcase
 
-    # Шаг 2: Сборка с резервным копированием
-    - name: Build with backup
-      id: build
-      continue-on-error: true  # Продолжаем даже при ошибке
-      run: |
-        buildozer android clean
-        buildozer -v android debug || true
-        
-        # Ищем APK в любом месте
-        APK_PATH=$(find . -name "*.apk" -print -quit)
-        if [ -n "$APK_PATH" ]; then
-          mkdir -p bin
-          cp "$APK_PATH" bin/latest.apk
-          echo "APK_PATH=bin/latest.apk" >> $GITHUB_OUTPUT
-          echo "BUILD_STATUS=success" >> $GITHUB_OUTPUT
-        else
-          echo "BUILD_STATUS=failed" >> $GITHUB_OUTPUT
-        fi
+      - name: Create Android project
+        run: |
+          briefcase create android
 
-    # Шаг 3: Сохранение артефактов ВСЕГДА
-    - name: Upload artifacts
-      if: always()  # Выполняется в любом случае
-      uses: actions/upload-artifact@v4
-      with:
-        name: app-build-results
-        path: |
-          bin/latest.apk
-          .buildozer/android/platform/build-*/build.log
-        retention-days: 7
+      - name: Build APK
+        run: |
+          briefcase build android
 
-    # Шаг 4: Отчет о статусе
-    - name: Build status
-      if: always()
-      run: |
-        if [ "${{ steps.build.outputs.BUILD_STATUS }}" == "success" ]; then
-          echo "✅ APK сохранен: ${{ steps.build.outputs.APK_PATH }}"
-        else
-          echo "❌ Сборка не удалась. Логи сохранены в артефактах"
-          grep -i -E "error|fail" .buildozer/android/platform/build-*/build.log || echo "Логи не найдены"
-        fi
+      - name: Package APK
+        run: |
+          briefcase package android --format apk
 
-    # Шаг 5: Комментарий в PR
-    - name: PR Comment
-      if: github.event_name == 'pull_request'
-      uses: actions/github-script@v6
-      with:
-        script: |
-          const artifactUrl = `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
-          github.rest.issues.createComment({
-            issue_number: context.issue.number,
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            body: `${{ steps.build.outputs.BUILD_STATUS == 'success' ? 
-              '✅ Сборка успешна! [Скачать APK](' + artifactUrl + ')' : 
-              '❌ Ошибка сборки. [Проверить логи](' + artifactUrl + ')'}`
-          });
+      - name: Upload APK
+        uses: actions/upload-artifact@v3
+        with:
+          name: hello-world-apk
+          path: android/*.apk
