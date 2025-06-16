@@ -5,6 +5,7 @@ on:
     branches-ignore: []
   pull_request:
     branches: [ '*' ]
+  workflow_dispatch:
 
 jobs:
   build:
@@ -13,8 +14,57 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    - name: Create default assets if missing
+    # Кеширование основных компонентов
+    - name: Cache Android SDK/NDK
+      uses: actions/cache@v3
+      id: cache-android
+      with:
+        path: |
+          ~/.buildozer/android/platform
+          ~/.android/cache
+          ~/.gradle/caches
+        key: ${{ runner.os }}-android-${{ hashFiles('buildozer.spec') }}
+        restore-keys: |
+          ${{ runner.os }}-android-
+
+    - name: Cache Python dependencies
+      uses: actions/cache@v3
+      id: cache-python
+      with:
+        path: |
+          ~/.cache/pip
+          ~/.local/lib/python3.9/site-packages
+        key: ${{ runner.os }}-python-${{ hashFiles('**/requirements.txt', 'buildozer.spec') }}
+        restore-keys: |
+          ${{ runner.os }}-python-
+
+    # Установка только при отсутствии кеша
+    - name: Install system dependencies
+      if: steps.cache-android.outputs.cache-hit != 'true'
       run: |
+        sudo apt-get update -qq
+        sudo apt-get install -y --no-install-recommends \
+          git zip unzip openjdk-17-jdk python3-pip \
+          autoconf libtool pkg-config zlib1g-dev \
+          libncurses-dev cmake libffi-dev libssl-dev \
+          imagemagick
+
+    # Установка Python-зависимостей
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+
+    - name: Install Python tools
+      if: steps.cache-python.outputs.cache-hit != 'true'
+      run: |
+        python -m pip install --upgrade pip wheel
+        pip install buildozer cython==0.29.32
+
+    # Создание стандартных assets при их отсутствии
+    - name: Prepare assets
+      run: |
+        mkdir -p ~/.android
         if [ ! -f icon.png ]; then
           convert -size 512x512 xc:white icon.png
         fi
@@ -22,25 +72,7 @@ jobs:
           convert -size 1280x720 xc:black presplash.png
         fi
 
-    - name: Install dependencies
-      run: |
-        sudo apt-get update -qq
-        sudo apt-get install -y --no-install-recommends \
-          git zip unzip openjdk-17-jdk python3-pip \
-          autoconf libtool pkg-config zlib1g-dev \
-          libncurses-dev cmake libffi-dev libssl-dev \
-          imagemagick  # Для создания стандартных изображений
-
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.9'
-
-    - name: Install Buildozer
-      run: |
-        pip install --upgrade pip wheel
-        pip install buildozer cython==0.29.32
-
+    # Сборка с использованием кешированных компонентов
     - name: Build APK
       run: |
         buildozer -v android debug
@@ -51,3 +83,4 @@ jobs:
       with:
         name: app-debug
         path: bin/*.apk
+        retention-days: 3
