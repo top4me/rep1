@@ -1,0 +1,30 @@
+name: Build Kivy APK
+
+on:
+  push:
+    branches: [ master ]  # или другая нужная ветка
+  workflow_dispatch:      # позволяет запускать вручную
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y python3-pip openjdk-8-jdk git unzip
+          pip3 install --upgrade cython buildozer
+
+      - name: Build APK
+        run: |
+          buildozer -v android debug
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: kivy-apk
+          path: bin/*.apk
