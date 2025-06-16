@@ -1,14 +1,12 @@
- 
 [build-system]
 requires = ["briefcase"]
 build-backend = "briefcase.backend"
 
 [tool.briefcase]
-project_name = "Hello World"
+project_name = "My App"
 bundle = "org.example"
-version = "0.0.1"
+version = "0.1.0"
 
-[tool.briefcase.app.helloworld]
-formal_name = "Hello World"
-description = "A simple demo app"
-sources = ["src/hello_world"]
+[tool.briefcase.app.myapp]
+formal_name = "My App"
+sources = ["src/myapp"]
