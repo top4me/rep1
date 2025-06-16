@@ -13,22 +13,39 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Python
+      - name: Set up Python 3.10  # Измените на 3.10
         uses: actions/setup-python@v4
         with:
-          python-version: '3.9'
+          python-version: '3.10'  # Briefcase лучше работает с Python 3.10+
+          cache: 'pip'  # Кешируем зависимости
 
-      - name: Install Briefcase
-        run: pip install briefcase toga
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libssl-dev libffi-dev
+
+      - name: Install Briefcase with retry
+        run: |
+          pip install --upgrade pip wheel setuptools
+          pip install briefcase==1.0.0 toga==0.3.0  # Фиксируем версии
 
       - name: Create Android project
-        run: briefcase create android
+        run: |
+          mkdir -p src/myapp
+          [ -f src/myapp/__init__.py ] || touch src/myapp/__init__.py
+          [ -f src/myapp/app.py ] || echo "
+          import toga
+          def build(app): return toga.Box(children=[toga.Label('Hello World!')])
+          def main(): return toga.App('MyApp', 'org.example.myapp', startup=build)
+          " > src/myapp/app.py
+          
+          briefcase create android
 
-      - name: Build APK
-        run: briefcase build android
-
-      - name: Package APK
-        run: briefcase package android --packaging-format apk --adhoc-sign
+      - name: Build and package
+        run: |
+          briefcase build android
+          briefcase package android --packaging-format apk --adhoc-sign
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
