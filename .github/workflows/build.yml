@@ -1,10 +1,17 @@
-name: Build Android APK
+name: Build Kivy APK
 
-on: [push, workflow_dispatch]
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: ['*']
+  workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-22.04
+    timeout-minutes: 30
+
     steps:
       - uses: actions/checkout@v4
 
@@ -15,23 +22,23 @@ jobs:
 
       - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip
-          pip install briefcase
+          sudo apt-get update
+          sudo apt-get install -y \
+            git zip unzip openjdk-17-jdk \
+            python3-pip autoconf libtool pkg-config \
+            zlib1g-dev libncurses5-dev libffi-dev libssl-dev
 
-      - name: Create Android project
-        run: |
-          briefcase create android
+      - name: Install Buildozer
+        run: pip install buildozer cython==0.29.32
 
       - name: Build APK
         run: |
-          briefcase build android
+          buildozer android clean
+          buildozer -v android debug
 
-      - name: Package APK
-        run: |
-          briefcase package android --format apk
-
-      - name: Upload APK
-        uses: actions/upload-artifact@v3
+      - name: Upload APK (v4)
+        uses: actions/upload-artifact@v4  # Актуальная версия!
         with:
-          name: hello-world-apk
-          path: android/*.apk
+          name: app-debug
+          path: bin/*.apk
+          retention-days: 7
