@@ -8,10 +8,17 @@ on:
 jobs:
   build:
     runs-on: ubuntu-22.04
-    timeout-minutes: 25
+    timeout-minutes: 30
 
     steps:
       - uses: actions/checkout@v4
+
+      - name: Check for pyproject.toml
+        run: |
+          if [ ! -f pyproject.toml ]; then
+            echo "❌ pyproject.toml not found!"
+            exit 1
+          fi
 
       - name: Set up Python 3.9
         uses: actions/setup-python@v4
@@ -21,21 +28,17 @@ jobs:
       - name: Install Briefcase
         run: pip install briefcase
 
-      - name: Initialize Android project
-        run: |
-          briefcase create android
+      - name: Create Android project
+        run: briefcase create android
 
       - name: Build APK
-        run: |
-          briefcase build android
+        run: briefcase build android
 
       - name: Package APK
-        run: |
-          briefcase package android --format apk
+        run: briefcase package android --format apk
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: app-briefcase
+          name: app-release
           path: android/*.apk
-          retention-days: 3

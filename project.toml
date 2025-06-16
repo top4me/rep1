@@ -3,10 +3,10 @@ requires = ["briefcase"]
 build-backend = "briefcase.backend"
 
 [tool.briefcase]
-project_name = "My App"
+project_name = "MyApp"
 bundle = "org.example"
 version = "0.1.0"
 
 [tool.briefcase.app.myapp]
-formal_name = "My App"
+formal_name = "MyApp"
 sources = ["src/myapp"]
