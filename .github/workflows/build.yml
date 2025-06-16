@@ -1,27 +1,27 @@
-- name: Build APK
-  run: |
-    # Очистка предыдущих сборок
-    rm -rf bin/ .buildozer/android/platform/build-*
-    
-    # Сборка с подробными логами
-    buildozer -v android debug 2>&1 | tee build.log
-    
-    # Проверка APK
-    APK_PATH=$(find . -path "./bin/*.apk" -o -path ".buildozer/android/platform/build-*/dists/*/bin/*.apk" -print -quit)
-    if [ -z "$APK_PATH" ]; then
-      echo "❌ APK не найден! Критические ошибки:"
-      grep -i -E "error|fail" build.log
-      exit 1
-    else
-      echo "✔ APK найден: $APK_PATH"
-      # Копируем в стандартную папку bin/
-      mkdir -p bin
-      cp "$APK_PATH" bin/output.apk
-    fi
+name: Build APK with Kivy/Buildozer Docker
 
-- name: Upload APK
-  uses: actions/upload-artifact@v4
-  with:
-    name: app-debug
-    path: bin/output.apk
-    retention-days: 3
+on:
+  push:           # Запуск при любом push
+  pull_request:   # Запуск при любом Pull Request
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    container: kivy/buildozer  # Используем официальный Docker-контейнер
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Install git (внутри контейнера часто отсутствует)
+      run: apt update && apt install -y git
+
+    - name: Build APK with Buildozer
+      run: |
+        buildozer android debug
+
+    - name: Upload APK artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: kivy-apk
+        path: bin/*.apk
