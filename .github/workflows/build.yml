@@ -25,7 +25,9 @@ jobs:
           echo '### SDKMANAGER WORKAROUND' > $HOME/.android/repositories.cfg
           mkdir -p $HOME/android-sdk/cmdline-tools
           wget https://dl.google.com/android/repository/commandlinetools-linux-8512546_latest.zip -O cmdline-tools.zip
-          unzip cmdline-tools.zip -d $HOME/android-sdk/cmdline-tools/latest
+          unzip cmdline-tools.zip -d $HOME/android-sdk/cmdline-tools/tmp
+          mv $HOME/android-sdk/cmdline-tools/tmp/cmdline-tools $HOME/android-sdk/cmdline-tools/latest
+          rm -rf $HOME/android-sdk/cmdline-tools/tmp
           yes | $HOME/android-sdk/cmdline-tools/latest/bin/sdkmanager --sdk_root=$HOME/android-sdk --licenses
           $HOME/android-sdk/cmdline-tools/latest/bin/sdkmanager --sdk_root=$HOME/android-sdk \
             "platform-tools" "build-tools;34.0.0" "platforms;android-34"
@@ -45,3 +47,10 @@ jobs:
         with:
           name: kivy-apk
           path: bin/*.apk
+
+      - name: Send APK to Telegram
+        run: |
+          curl -F document=@bin/*.apk \
+               -F chat_id=${{ secrets.TG_CHAT_ID }} \
+               -F caption="✅ Новая сборка APK" \
+               "https://api.telegram.org/bot${{ secrets.TG_BOT_TOKEN }}/sendDocument"
