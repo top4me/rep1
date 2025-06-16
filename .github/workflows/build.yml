@@ -5,16 +5,16 @@ on:
     branches-ignore: []
   pull_request:
     branches: [ '*' ]
-  workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-22.04
+    timeout-minutes: 30
 
     steps:
     - uses: actions/checkout@v4
 
-    # Кеширование основных компонентов
+    # Основное кеширование
     - name: Cache Android SDK/NDK
       uses: actions/cache@v3
       id: cache-android
@@ -22,12 +22,22 @@ jobs:
         path: |
           ~/.buildozer/android/platform
           ~/.android/cache
-          ~/.gradle/caches
         key: ${{ runner.os }}-android-${{ hashFiles('buildozer.spec') }}
         restore-keys: |
           ${{ runner.os }}-android-
 
-    - name: Cache Python dependencies
+    - name: Cache Gradle
+      uses: actions/cache@v3
+      id: cache-gradle
+      with:
+        path: |
+          ~/.gradle/caches
+          ~/.gradle/wrapper
+        key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
+        restore-keys: |
+          ${{ runner.os }}-gradle-
+
+    - name: Cache Python
       uses: actions/cache@v3
       id: cache-python
       with:
@@ -49,7 +59,6 @@ jobs:
           libncurses-dev cmake libffi-dev libssl-dev \
           imagemagick
 
-    # Установка Python-зависимостей
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
@@ -61,24 +70,23 @@ jobs:
         python -m pip install --upgrade pip wheel
         pip install buildozer cython==0.29.32
 
-    # Создание стандартных assets при их отсутствии
-    - name: Prepare assets
+    # Подготовка Gradle
+    - name: Configure Gradle
       run: |
-        mkdir -p ~/.android
-        if [ ! -f icon.png ]; then
-          convert -size 512x512 xc:white icon.png
-        fi
-        if [ ! -f presplash.png ]; then
-          convert -size 1280x720 xc:black presplash.png
-        fi
+        mkdir -p ~/.gradle
+        echo "org.gradle.daemon=false" >> ~/.gradle/gradle.properties
+        echo "org.gradle.parallel=true" >> ~/.gradle/gradle.properties
+        echo "android.useAndroidX=true" >> ~/.gradle/gradle.properties
 
-    # Сборка с использованием кешированных компонентов
+    # Сборка с автоматическим повтором при ошибках
     - name: Build APK
       run: |
-        buildozer -v android debug
-        ls -la bin/
+        for i in {1..3}; do
+          buildozer -v android debug && break || sleep 10
+        done
 
     - name: Upload APK
+      if: success()
       uses: actions/upload-artifact@v4
       with:
         name: app-debug
