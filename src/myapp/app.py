@@ -1,14 +1,13 @@
- 
 import toga
 
-def button_handler(widget):
-    print("Hello World!")
-
 def build(app):
-    box = toga.Box()
-    button = toga.Button("Click me!", on_press=button_handler)
-    box.add(button)
-    return box
+    return toga.Box(children=[
+        toga.Label("Hello World!", style=Pack(padding=20))
+    ])
 
 def main():
-    return toga.App("Hello World", "org.example.helloworld", startup=build)
+    return toga.App(
+        formal_name="MyApp",
+        app_id="org.example.myapp",
+        startup=build
+    )

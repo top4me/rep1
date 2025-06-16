@@ -13,37 +13,34 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Python 3.10  # Измените на 3.10
+      - name: Set up Python 3.10
         uses: actions/setup-python@v4
         with:
-          python-version: '3.10'  # Briefcase лучше работает с Python 3.10+
-          cache: 'pip'  # Кешируем зависимости
+          python-version: '3.10'
 
-      - name: Install system dependencies
+      - name: Install dependencies
         run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            libssl-dev libffi-dev
+          pip install --upgrade pip
+          pip install briefcase==0.3.23 toga==0.3.0
 
-      - name: Install Briefcase with retry
-        run: |
-          pip install --upgrade pip wheel setuptools
-          pip install briefcase==1.0.0 toga==0.3.0  # Фиксируем версии
-
-      - name: Create Android project
+      - name: Create project structure
         run: |
           mkdir -p src/myapp
           [ -f src/myapp/__init__.py ] || touch src/myapp/__init__.py
-          [ -f src/myapp/app.py ] || echo "
+          [ -f src/myapp/app.py ] || cat > src/myapp/app.py <<EOF
           import toga
-          def build(app): return toga.Box(children=[toga.Label('Hello World!')])
-          def main(): return toga.App('MyApp', 'org.example.myapp', startup=build)
-          " > src/myapp/app.py
-          
-          briefcase create android
+          from toga.style import Pack
+          def build(app):
+              return toga.Box(children=[
+                  toga.Label("Hello World!", style=Pack(padding=20))
+              ])
+          def main():
+              return toga.App("MyApp", "org.example.myapp", startup=build)
+          EOF
 
-      - name: Build and package
+      - name: Build APK
         run: |
+          briefcase create android
           briefcase build android
           briefcase package android --packaging-format apk --adhoc-sign
 
