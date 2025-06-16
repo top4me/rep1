@@ -12,12 +12,12 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
 
-    - name: Set up Docker and run Buildozer inside container
+    - name: Pull compatible Docker image and run Buildozer
       run: |
-        docker pull kivy/buildozer
+        docker pull kivy/buildozer:python3
         docker run --rm -v ${{ github.workspace }}:/home/user/app \
           -w /home/user/app \
-          kivy/buildozer \
+          kivy/buildozer:python3 \
           buildozer android debug
 
     - name: Upload APK artifact
