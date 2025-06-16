@@ -1,15 +1,31 @@
 [app]
-# Название вашего приложения
-title = MyKivyApp
 
-# Имя пакета (латиницей, без пробелов)
-package.name = mykivyapp
-
-# Уникальный домен для вашего пакета
-package.domain = org.example
-
-# Папка с исходниками (текущий каталог)
+# Настройки приложения
+title = My Kivy App
+package.name = myapp
+package.domain = org.test
 source.dir = .
+source.include_exts = py,png,jpg,kv,atlas,ttf
+version = 0.1
 
-# Расширения, которые следует включать
-source
+# Требования
+requirements = python3, kivy==2.3.0, android
+
+# Android SDK
+android.api = 34
+android.minapi = 21
+android.sdk = 34
+android.ndk = 25b
+android.ndk_path = 
+
+# Разрешения
+android.permissions = INTERNET
+
+# Иконки и ассеты
+icon.filename = icon.png
+presplash.filename = presplash.png
+orientation = portrait
+fullscreen = 0
+
+# Настройки сборки
+android.arch = arm64-v8
