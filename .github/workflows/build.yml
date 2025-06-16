@@ -1,4 +1,4 @@
-name: Build APK with Kivy/Buildozer Docker
+name: Build APK with Kivy/Buildozer
 
 on:
   push:
@@ -12,12 +12,16 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
 
-    - name: Pull compatible Docker image and run Buildozer
+    - name: Disable BuildKit and pull Docker image
       run: |
-        docker pull kivy/buildozer:python3
+        export DOCKER_BUILDKIT=0
+        docker pull kivy/buildozer
+
+    - name: Run Buildozer inside Docker
+      run: |
         docker run --rm -v ${{ github.workspace }}:/home/user/app \
           -w /home/user/app \
-          kivy/buildozer:python3 \
+          kivy/buildozer \
           buildozer android debug
 
     - name: Upload APK artifact
