@@ -1,53 +1,21 @@
 [app]
-
-# Название приложения
 title = My Kivy App
-
-# Имя пакета (должно быть уникальным)
 package.name = myapp
-
-# Домен (обычно перевернутый домен разработчика)
 package.domain = org.test
-
-# Путь к основной Python-логике
 source.dir = .
-
-# Главный файл приложения
 source.include_exts = py,png,jpg,kv,atlas,ttf
-
-# Версия приложения (format: major.minor.revision)
 version = 0.1
+requirements = python3, kivy==2.3.0, android  # Убраны лишние пробелы
 
-# Требуемая версия Kivy
-requirements = python3,kivy==2.3.0,android
-
-# Укажите версию SDK и NDK (можно оставить по умолчанию)
+# Жёстко фиксируем версии SDK/NDK
 android.api = 34
 android.minapi = 21
 android.ndk = 25b
-android.sdk = 24
+android.sdk = 34  # Исправлено на актуальную версию
+android.ndk_path = /path/to/ndk  # Если нужно
 
-# Разрешения для Android (указывайте только необходимые)
-android.permissions = INTERNET
+# Указываем явный путь для APK
+android.release_artifact = bin/{title}-{version}-debug.apk
 
-# Ориентация экрана (portrait или landscape)
-orientation = portrait
-
-# Иконка (убедитесь, что файл существует)
-icon.filename = icon.png
-
-# Логотип запуска (presplash)
-presplash.filename = presplash.png
-
-# Дополнительные настройки
-fullscreen = 0
-android.accept_sdk_license = True
-
-# (Опционально) Укажите дополнительные зависимости
-# requirements = kivy, openssl, requests, pillow
-
-# (Опционально) Настройки для release-сборки
-# key.keystore = 
-# key.alias = 
-# key.store_password = 
-# key.alias_password = 
+# Оптимизация
+android.arch = arm64-v8a  # Собираем только для одной архитектуры
