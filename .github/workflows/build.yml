@@ -5,7 +5,6 @@ on:
     branches-ignore: []
   pull_request:
     branches: [ '*' ]
-  workflow_dispatch:
 
 jobs:
   build:
@@ -14,41 +13,41 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    - name: Update apt cache
-      run: sudo apt-get update -qq
-
-    - name: Install essential dependencies
+    - name: Create default assets if missing
       run: |
+        if [ ! -f icon.png ]; then
+          convert -size 512x512 xc:white icon.png
+        fi
+        if [ ! -f presplash.png ]; then
+          convert -size 1280x720 xc:black presplash.png
+        fi
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get update -qq
         sudo apt-get install -y --no-install-recommends \
           git zip unzip openjdk-17-jdk python3-pip \
           autoconf libtool pkg-config zlib1g-dev \
           libncurses-dev cmake libffi-dev libssl-dev \
-          ninja-build
+          imagemagick  # Для создания стандартных изображений
 
-    - name: Verify installed packages
-      run: dpkg -l git openjdk-17-jdk cmake libssl-dev
-
-    - name: Set up Python 3.9
+    - name: Set up Python
       uses: actions/setup-python@v4
       with:
         python-version: '3.9'
 
-    - name: Install Python tools
+    - name: Install Buildozer
       run: |
-        python -m pip install --upgrade pip wheel
+        pip install --upgrade pip wheel
         pip install buildozer cython==0.29.32
 
-    - name: Initialize Buildozer
-      run: buildozer init || true
-
-    - name: Build Android APK
+    - name: Build APK
       run: |
         buildozer -v android debug
         ls -la bin/
 
-    - name: Upload APK artifact
+    - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
         name: app-debug
         path: bin/*.apk
-        retention-days: 3
