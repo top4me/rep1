@@ -6,6 +6,10 @@ build-backend = "briefcase.backend"
 project_name = "MyApp"
 bundle = "org.example"
 version = "0.1.0"
+description = "My first Briefcase app"  # Обязательное поле
+license = "MIT"                        # Обязательное поле
+author = "Your Name"
+author_email = "your@email.com"
 
 [tool.briefcase.app.myapp]
 formal_name = "MyApp"
