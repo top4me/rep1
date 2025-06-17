@@ -11,6 +11,14 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Cache Python dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}-v1
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
@@ -22,13 +30,22 @@ jobs:
           pip install briefcase toga-android
           sudo apt-get update && sudo apt-get install -y openjdk-17-jdk
 
+      - name: Cache Gradle dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/gradle/**') }}-v1
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
       - name: Build APK
         run: |
           python -m briefcase create android
           python -m briefcase build android
           python -m briefcase package android --adhoc
           
-          # Проверяем где создался APK
           echo "Поиск APK файлов..."
           find . -name "*.apk" -exec ls -lh {} \;
 
