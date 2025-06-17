@@ -5,5 +5,5 @@ def build(app):
     request_permissions([Permission.INTERNET])
     return toga.Box(children=[toga.Label("Hello!")])
 
-app = toga.App("Test", "com.example.testapp", startup=build)
-app.main_loop()
+def main():
+    return toga.App("Test", "com.example.testapp", startup=build)
