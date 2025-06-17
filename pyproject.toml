@@ -16,6 +16,7 @@ author_email = "your@email.com"
 formal_name = "MyApp"
 description = "My Toga Application"
 sources = ["src/myapp"]
+entry_point = "myapp:main"
 icon = "resources/icon"
 
 [tool.briefcase.app.myapp.android]
