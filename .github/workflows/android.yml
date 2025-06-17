@@ -27,19 +27,17 @@ jobs:
           python -m briefcase create android
           python -m briefcase build android
           python -m briefcase package android --adhoc
-          
-          # Проверяем где создался APK
-          echo "Поиск APK файлов..."
-          find . -name "*.apk" -exec ls -lh {} \;
+
+      - name: Prepare APK for upload
+        run: |
+          mkdir -p artifact_root
+          find android/bin -name "*.apk" -exec cp {} artifact_root/ \;
+          echo "APK файлы:"
+          ls -lh artifact_root/
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
           name: myapp-apk
-          path: |
-            android/bin/**/*.apk
-            android/app/build/outputs/apk/**/*.apk
-            android/app/build/outputs/bundle/**/*.aab
-            build/**/*.apk
-          if-no-files-found: error
+          path: artifact_root/*.apk
           retention-days: 7
