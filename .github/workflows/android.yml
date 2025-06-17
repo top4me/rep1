@@ -27,11 +27,10 @@ jobs:
           python -m briefcase create android
           python -m briefcase build android
           python -m briefcase package android --adhoc
-
-      - name: Debug APK location
-        run: |
-          echo "Собранные APK:"
-          find android/bin -name "*.apk" -exec ls -lh {} \;
+          
+          # Проверяем где создался APK
+          echo "Поиск APK файлов..."
+          find . -name "*.apk" -exec ls -lh {} \;
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
@@ -39,13 +38,8 @@ jobs:
           name: myapp-apk
           path: |
             android/bin/**/*.apk
-            android/gradle/**/outputs/apk/**/*.apk
+            android/app/build/outputs/apk/**/*.apk
+            android/app/build/outputs/bundle/**/*.aab
+            build/**/*.apk
+          if-no-files-found: error
           retention-days: 7
-
-      - name: Upload to Release (optional)
-        if: startsWith(github.ref, 'refs/tags/')
-        uses: softprops/action-gh-release@v1
-        with:
-          files: |
-            android/bin/**/*.apk
-            android/gradle/**/outputs/apk/**/*.apk
