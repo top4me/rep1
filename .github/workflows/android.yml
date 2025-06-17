@@ -26,11 +26,11 @@ jobs:
         run: |
           python -m briefcase create android
           python -m briefcase build android
-          python -m briefcase package android --no-sign
+          python -m briefcase package android --adhoc
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
           name: myapp-apk
           path: android/bin/*.apk
-          retention-days: 7  # Автоматическое удаление через 7 дней (опционально)
+          retention-days: 7
