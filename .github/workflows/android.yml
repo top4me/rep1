@@ -1,8 +1,8 @@
 name: Build Android APK
 
 on:
-  push:  # Запуск при любом push, включая теги и все ветки
-  pull_request:  # Опционально: сборка при PR
+  push:
+  pull_request:
 
 jobs:
   build:
@@ -29,7 +29,8 @@ jobs:
           python -m briefcase package android --no-sign
 
       - name: Upload APK artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: myapp-apk
           path: android/bin/*.apk
+          retention-days: 7  # Автоматическое удаление через 7 дней (опционально)
