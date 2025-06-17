@@ -1,4 +1,5 @@
 [build-system]
+
 requires = ["briefcase>=0.3.0"]
 build-backend = "briefcase.build"
 
