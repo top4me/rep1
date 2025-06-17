@@ -42,6 +42,7 @@ jobs:
 
       - name: Build APK
         run: |
+          rm -rf android/
           python -m briefcase create android
           python -m briefcase build android
           python -m briefcase package android --adhoc
