@@ -1,54 +1,45 @@
 import toga
 from toga.style import Pack
 from toga.style.pack import COLUMN
-from rubicon.java import JavaClass, JavaInterface, java_method, cast
-from jnius import autoclass
 
-# Android sensor classes
-Context = autoclass('android.content.Context')
-SensorManager = autoclass('android.hardware.SensorManager')
-Sensor = autoclass('android.hardware.Sensor')
-SensorEventListener = JavaInterface('android.hardware.SensorEventListener')
+from java.lang import Class
+from android.permissions import request_permissions, Permission
+from java import jarray
 
-class MySensorListener(JavaClass, implements=[SensorEventListener]):
-    __javainterfaces__ = ['android/hardware/SensorEventListener']
-    __javacontext__ = 'app'
+SensorManager = None
+Sensor = None
+Context = None
 
-    def __init__(self, label):
-        super().__init__()
-        self.label = label
+class SensorApp(toga.App):
+    def startup(self):
+        global SensorManager, Sensor, Context
 
-    @java_method('(Landroid/hardware/SensorEvent;)V')
-    def onSensorChanged(self, event):
-        values = [str(v) for v in event.values.toArray()]
-        sensor_type = event.sensor.getType()
-        text = f"Sensor {sensor_type}: {', '.join(values)}"
-        # Обновляем UI в главном потоке
-        toga.App.app.main_window.content.children[0].text = text
+        # Запрашиваем разрешения
+        request_permissions([Permission.BODY_SENSORS])
 
-    @java_method('(Landroid/hardware/Sensor;I)V')
-    def onAccuracyChanged(self, sensor, accuracy):
-        pass
+        # Получаем текущую NativeActivity
+        activity = self._impl.native_activity
+        Context = Class.forName("android.content.Context")
+        sensor_service = activity.getSystemService(Context.SENSOR_SERVICE)
 
-def build(app):
-    # UI
-    label = toga.Label("Waiting for sensor data...", style=Pack(padding=10))
-    box = toga.Box(children=[label], style=Pack(direction=COLUMN, padding=10))
+        # Получаем классы сенсоров
+        SensorManager = Class.forName("android.hardware.SensorManager")
+        Sensor = Class.forName("android.hardware.Sensor")
 
-    # Android context
-    PythonActivity = autoclass('org.beeware.android.MainActivity')
-    context = PythonActivity.mActivity.getSystemService(Context.SENSOR_SERVICE)
-    sensor_manager = cast('android.hardware.SensorManager', context)
+        # Получаем список всех сенсоров
+        sensor_list = sensor_service.getSensorList(Sensor.TYPE_ALL)
 
-    # Выбор всех доступных сенсоров
-    sensors = sensor_manager.getSensorList(Sensor.TYPE_ALL)
+        sensor_names = []
+        for i in range(sensor_list.size()):
+            sensor = sensor_list.get(i)
+            sensor_names.append(sensor.getName())
 
-    # Запускаем прослушивание
-    listener = MySensorListener(label)
-    for sensor in sensors.toArray():
-        sensor_manager.registerListener(listener, sensor, SensorManager.SENSOR_DELAY_UI)
+        # Показываем в интерфейсе
+        self.label = toga.Label("\n".join(sensor_names), style=Pack(padding=10))
+        self.main_window = toga.MainWindow(title=self.formal_name)
+        self.main_window.content = toga.Box(children=[self.label], style=Pack(direction=COLUMN))
+        self.main_window.show()
 
-    return box
 
 def main():
-    return toga.App("Sensor Reader", "com.example.sensors", startup=build)
+    return SensorApp("Sensor App", "com.example.sensorapp")
