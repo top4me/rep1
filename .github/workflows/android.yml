@@ -1,7 +1,7 @@
 name: Build Android APK
 
 on:
-  push:  # Запускается при любом push
+  push:  # Запуск на любой push в любую ветку
 
 jobs:
   build-android:
@@ -17,9 +17,12 @@ jobs:
         with:
           python-version: '3.9'
 
-      - name: Install dependencies
+      - name: Upgrade build tools
         run: |
-          python -m pip install --upgrade pip
+          python -m pip install --upgrade pip setuptools wheel
+
+      - name: Install Briefcase and Toga
+        run: |
           pip install briefcase toga[android]
 
       - name: Create Android project (if needed)
