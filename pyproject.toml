@@ -1,18 +1,24 @@
+[build-system]
+
+requires = ["briefcase>=0.3.0"]
+build-backend = "briefcase.build"
+
 [tool.briefcase]
 project_name = "MyApp"
-bundle = "org.example.myapp"
-version = "0.0.1"
+bundle = "com.example"
+version = "0.1.0"
 url = "https://example.com"
 license = "MIT"
 author = "Your Name"
-author_email = "you@example.com"
+author_email = "your@email.com"
 
 [tool.briefcase.app.myapp]
 formal_name = "MyApp"
-description = "Short Hello World"
+description = "My Toga Application"
 sources = ["src/myapp"]
-entry_point = "myapp:main"
-requires = ["toga"]
+icon = "resources/icon"
 
 [tool.briefcase.app.myapp.android]
-permissions = []
+requires = [
+    "toga-android>=0.3.0",
+]
