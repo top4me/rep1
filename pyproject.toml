@@ -7,14 +7,16 @@ license = "MIT"
 author = "Your Name"
 author_email = "sontrava@gmail.com"
 
-[tool.briefcase.app.hellotoga]
+[tool.briefcase.app.myapp]
 formal_name = "Hello Toga"
 description = "A simple one-file Toga app"
-sources = ["src"]
+sources = ["src/myapp"]
 entry_point = "myapp:main"
-requires = ["toga"]
+requires = [
+    "toga"
+]
 
-[tool.briefcase.app.hellotoga.android]
+[tool.briefcase.app.myapp.android]
 requires = []
 
 [build-system]
