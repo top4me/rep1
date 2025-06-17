@@ -24,30 +24,22 @@ jobs:
 
       - name: Build APK
         run: |
-          # Создаем временную папку для сборки
-          mkdir -p android_build
-          cd android_build
-          
-          # Инициализируем проект Briefcase
-          python -m briefcase new
-          
-          # Копируем ваши исходники
-          cp -r ../src/* ./src/
-          cp ../pyproject.toml .
-          
-          # Собираем APK
           python -m briefcase create android
           python -m briefcase build android
           python -m briefcase package android --adhoc
           
-          # Сохраняем путь к APK
-          APK_PATH=$(find . -name "*.apk" | head -1)
-          echo "APK_PATH=${APK_PATH}" >> $GITHUB_ENV
-          echo "APK найден по пути: ${APK_PATH}"
+          # Проверяем где создался APK
+          echo "Поиск APK файлов..."
+          find . -name "*.apk" -exec ls -lh {} \;
 
-      - name: Upload APK
+      - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: app
-          path: ${{ env.APK_PATH }}
+          name: myapp-apk
+          path: |
+            android/bin/**/*.apk
+            android/app/build/outputs/apk/**/*.apk
+            android/app/build/outputs/bundle/**/*.aab
+            build/**/*.apk
           if-no-files-found: error
+          retention-days: 7
