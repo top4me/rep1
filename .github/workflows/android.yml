@@ -42,8 +42,6 @@ jobs:
 
       - name: Build APK
         run: |
-- name: Build APK
-  run: |
           python -m briefcase create android
           python -m briefcase build android
           python -m briefcase package android --adhoc
@@ -61,4 +59,4 @@ jobs:
             android/app/build/outputs/bundle/**/*.aab
             build/**/*.apk
           if-no-files-found: error
-          retention-days: 1
+          retention-days: 7
