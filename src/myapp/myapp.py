@@ -6,4 +6,4 @@ def build(app):
     return toga.Box(children=[toga.Label("Hello!")])
 
 def main():
-    return toga.App("Test", "com.example.testapp", startup=build)
+    return toga.App("MyApp", "com.example.myapp", startup=build)
