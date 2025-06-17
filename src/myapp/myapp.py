@@ -1,32 +1,19 @@
 import toga
-from android.config import JAVA_NAMESPACE
-from android.permissions import request_permissions, Permission
+from toga.style import Pack
+from toga.style.pack import COLUMN
 
-def build(app):
-    try:
-        # Запрашиваем обязательные разрешения
-        request_permissions([Permission.INTERNET])
-        
-        # Минимальный интерфейс
-        box = toga.Box()
-        label = toga.Label("Приложение запущено!", style=dict(padding=50))
+class MyApp(toga.App):
+    def startup(self):
+        box = toga.Box(style=Pack(direction=COLUMN))
+        label = toga.Label("Hello, World!")
         box.add(label)
-        return box
-        
-    except Exception as e:
-        # Записываем ошибку в логи Android
-        from android.util import Log
-        Log.e("TogaApp", f"Startup error: {str(e)}")
-        raise
 
-if __name__ == '__main__':
-    app = toga.App(
-        'MyApp',
-        'com.example.myapp',
-        startup=build,
-        # Обязательные параметры для Android
-        icon='resources/icon',
-        version='1.0',
-        description='Test App'
-    )
-    app.main_loop()
+        self.main_window = toga.MainWindow(title=self.formal_name)
+        self.main_window.content = box
+        self.main_window.show()
+
+def main():
+    return MyApp("MyApp", "com.example.myapp")
+
+if __name__ == "__main__":
+    main().main_loop()
