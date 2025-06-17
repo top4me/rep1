@@ -1,10 +1,11 @@
 name: Build Android APK
 
 on:
-  push:
+  push:  # Запускается при любом push
 
 jobs:
-  build:
+  build-android:
+    name: Build APK
     runs-on: ubuntu-latest
 
     steps:
@@ -21,22 +22,19 @@ jobs:
           python -m pip install --upgrade pip
           pip install briefcase toga[android]
 
-      - name: Create Android project (if not exists)
+      - name: Create Android project (if needed)
         run: |
-          if [ ! -d "build/hellotoga/android" ]; then
+          if [ ! -d "build/myapp/android" ]; then
             briefcase create android
           fi
 
-      - name: Build APK
+      - name: Build and Package APK
         run: |
           briefcase build android
-
-      - name: Package APK
-        run: |
           briefcase package android
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: app-debug.apk
-          path: build/hellotoga/android/gradle/app/build/outputs/apk/debug/app-debug.apk
+          name: myapp-apk
+          path: build/myapp/android/gradle/app/build/outputs/apk/debug/app-debug.apk
