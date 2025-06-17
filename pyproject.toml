@@ -1,4 +1,5 @@
 [tool.briefcase]
+
 project_name = "Hello Toga"
 bundle = "org.example.hellotoga"
 version = "0.0.1"
