@@ -20,10 +20,10 @@ icon = "resources/icon.png"  # Явное указание расширения
 
 [tool.briefcase.app.myapp.android]
 # Критичные настройки для Android
-target_sdk_version = 33
+target_sdk_version = 31
 min_sdk_version = 21
 requires = [
-    "toga-android>=0.3.0",
+    "toga-android>=0.4.0",
     "rubicon-java>=0.2.3",  # Обязательно для работы с Android API
     "setuptools>=65.5.1",   # Важно для корректной сборки
 ]
