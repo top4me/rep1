@@ -26,14 +26,5 @@ requires = [
 
 
 
-target_sdk_version = 31
-min_sdk_version = 21
-
-# Все зависимости должны быть явно указаны
-requires = [
-    "toga-android>=0.4.0",
-    "rubicon-java>=0.2.0",
-]
-
 
 
