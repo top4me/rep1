@@ -1,11 +1,10 @@
 [build-system]
-
 requires = ["briefcase>=0.3.0"]
 build-backend = "briefcase.build"
 
 [tool.briefcase]
 project_name = "MyApp"
-bundle = "com.example"
+bundle = "com.example.myapp"  # Важно: в доменном формате
 version = "0.1.0"
 url = "https://example.com"
 license = "MIT"
@@ -17,14 +16,24 @@ formal_name = "MyApp"
 description = "My Toga Application"
 sources = ["src/myapp"]
 entry_point = "myapp:main"
-icon = "resources/icon"
+icon = "resources/icon.png"  # Явное указание расширения
 
 [tool.briefcase.app.myapp.android]
+# Критичные настройки для Android
+target_sdk_version = 33
+min_sdk_version = 21
 requires = [
     "toga-android>=0.3.0",
+    "rubicon-java>=0.2.3",  # Обязательно для работы с Android API
+    "setuptools>=65.5.1",   # Важно для корректной сборки
 ]
 
+# Настройки подписи (даже для debug)
+signing_key = "debug.keystore"
+signing_key_alias = "androiddebugkey"
+signing_key_password = "android"
 
-
-
-
+# Разрешения Android
+permissions = [
+    "android.permission.INTERNET",
+]
