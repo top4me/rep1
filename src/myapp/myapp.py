@@ -1,28 +1,5 @@
-import toga
-from jnius import autoclass
-
-def get_battery_level():
-    # Получаем контекст Android-приложения
-    PythonActivity = autoclass('org.beeware.android.MainActivity')
-    Intent = autoclass('android.content.Intent')
-    IntentFilter = autoclass('android.content.IntentFilter')
-    BatteryManager = autoclass('android.os.BatteryManager')
-
-    activity = PythonActivity.singletonThis
-    context = activity.getApplicationContext()
-
-    ifilter = IntentFilter(Intent.ACTION_BATTERY_CHANGED)
-    battery_status = context.registerReceiver(None, ifilter)
-
-    level = battery_status.getIntExtra(BatteryManager.EXTRA_LEVEL, -1)
-    scale = battery_status.getIntExtra(BatteryManager.EXTRA_SCALE, -1)
-
-    battery_pct = int((level / scale) * 100)
-    return f"Заряд батареи: {battery_pct}%"
-
+import toga; from jnius import autoclass as a
 def build(app):
-    battery_text = get_battery_level()
-    return toga.Box(children=[toga.Label(battery_text)])
-
-def main():
-    return toga.App("BatteryApp", "com.example.myapp", startup=build)
+ r=a('org.beeware.android.MainActivity').singletonThis.getApplicationContext().registerReceiver(None,a('android.content.IntentFilter')(a('android.content.Intent').ACTION_BATTERY_CHANGED))
+ return toga.Box(children=[toga.Label(f"🔋 {int(r.getIntExtra('level',-1)/r.getIntExtra('scale',-1)*100)}%")])
+def main(): return toga.App("B","com.example.myapp.myapp",startup=build)
