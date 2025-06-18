@@ -1,0 +1,10 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="org.example.battery">
+    
+    <!-- Разрешение для доступа к батарее -->
+    <uses-permission android:name="android.permission.BATTERY_STATS" />
+    
+    <application ...>
+        ...
+    </application>
+</manifest>

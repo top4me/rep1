@@ -1,50 +1,55 @@
 import toga
-import sys
-import os
 from toga.style import Pack
 from toga.style.pack import COLUMN
+from jnius import autoclass  # Для доступа к Android API
 
-# Выберите подходящий метод для вашей ОС!
 def get_battery_status():
     try:
-        # Вариант для Windows (ctypes)
-        import ctypes
-        class SYSTEM_POWER_STATUS(ctypes.Structure):
-            _fields_ = [
-                ("ACLineStatus", ctypes.c_byte),
-                ("BatteryFlag", ctypes.c_byte),
-                ("BatteryLifePercent", ctypes.c_byte),
-            ]
-        status = SYSTEM_POWER_STATUS()
-        if ctypes.windll.kernel32.GetSystemPowerStatus(ctypes.pointer(status)):
-            percent = status.BatteryLifePercent
-            if percent != 255:
-                return f"🔋 Заряд: {percent}%"
-        return "Батарея не найдена"
+        # Используем Android API через PyJNIus
+        Context = autoclass("android.content.Context")
+        BatteryManager = autoclass("android.os.BatteryManager")
+        PythonActivity = autoclass("org.kivy.android.PythonActivity")
+        
+        activity = PythonActivity.mActivity
+        battery_manager = activity.getSystemService(Context.BATTERY_SERVICE)
+        
+        # Получаем заряд батареи (в процентах)
+        level = battery_manager.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY)
+        
+        # Проверяем, заряжается ли устройство
+        is_charging = battery_manager.isCharging()
+        
+        status = "⚡ Заряжается" if is_charging else "🔋 Разряжается"
+        return f"Заряд: {level}%\n{status}"
+    
     except Exception as e:
         return f"Ошибка: {str(e)}"
 
 def build(app):
-    label = toga.Label(get_battery_status(), style=Pack(padding=10))
+    # Текстовое поле для вывода информации
+    label = toga.Label(
+        get_battery_status(),
+        style=Pack(padding=10, font_size=16)
+    
+    # Кнопка для обновления данных
     button = toga.Button(
         "Обновить",
-        on_press=lambda widget: setattr(label, 'text', get_battery_status()),
-    )
-    box = toga.Box(children=[label, button], style=Pack(direction=COLUMN))
+        on_press=lambda widget: setattr(label, "text", get_battery_status()),
+        style=Pack(padding=5))
+    
+    # Главное окно
+    box = toga.Box(
+        children=[label, button],
+        style=Pack(direction=COLUMN, padding=10))
+    
     return box
 
 def main():
     return toga.App(
         "Battery Monitor",
-        "org.example.batterymonitor",
-        startup=build,
-        backend='winforms',  # Или 'gtk', 'cocoa'
-    )
+        "org.example.battery",
+        startup=build)
 
 if __name__ == "__main__":
-    try:
-        app = main()
-        app.main_loop()
-    except Exception as e:
-        print(f"CRASH: {e}", file=sys.stderr)
-        sys.exit(1)
+    app = main()
+    app.main_loop()
