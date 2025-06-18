@@ -1,7 +1,38 @@
-import toga; from jnius import autoclass as a
+import toga
+import psutil
+
+def get_battery_status():
+    battery = psutil.sensors_battery()
+    if battery:
+        return f"🔋 Заряд: {battery.percent}% | {'⚡ Зарядка' if battery.power_plugged else '🔌 Не заряжается'}"
+    return "Батарея не обнаружена"
+
 def build(app):
- c=a('org.beeware.android.MainActivity').singletonThis.getApplicationContext()
- r=c.registerReceiver(None, a('android.content.IntentFilter')(a('android.content.Intent').ACTION_BATTERY_CHANGED))
- t="⚠" if not r else f"🔋 {int(r.getIntExtra('level',-1)/r.getIntExtra('scale',-1)*100)}%"
- return toga.Box(children=[toga.Label(t)])
-def main(): return toga.App("B","com.example.myapp.myapp",startup=build)
+    # Обновляемое поле с зарядом батареи
+    battery_label = toga.Label(get_battery_status(), style=Pack(font_size=14, padding=10))
+    
+    # Кнопка для обновления
+    button = toga.Button(
+        "Обновить",
+        on_press=lambda widget: battery_label.text = get_battery_status(),
+        style=Pack(padding=5)
+    )
+    
+    # Основной контейнер
+    box = toga.Box(
+        children=[battery_label, button],
+        style=Pack(direction=COLUMN, padding=10)
+    )
+    return box
+
+def main():
+    return toga.App(
+        "Battery Monitor",
+        "org.example.batterymonitor",
+        startup=build,
+        icon="icons/battery.ico"  # (опционально) путь к иконке
+    )
+
+if __name__ == "__main__":
+    app = main()
+    app.main_loop()
